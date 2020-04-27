@@ -10,6 +10,8 @@ import { ProductEditComponent } from './product-edit/product-edit.component';
 /* NgRx */
 import { StoreModule } from '@ngrx/store';
 import { reducer } from './state/product.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { ProductEffects } from './state/product.effects';
 
 const productRoutes: Routes = [
   { path: '', component: ProductShellComponent }
@@ -25,6 +27,10 @@ const productRoutes: Routes = [
     *  второй арг - редуктор или набор редукторов, которые создают состояния продуктов.
     * */
     StoreModule.forFeature('products', reducer),
+    // todo все эффекты текущего модуля регистрируются тут
+    EffectsModule.forFeature([
+      ProductEffects,
+    ])
   ],
   declarations: [
     ProductShellComponent,

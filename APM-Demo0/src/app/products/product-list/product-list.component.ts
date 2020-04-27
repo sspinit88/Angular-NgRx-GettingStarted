@@ -7,6 +7,8 @@ import { ProductService } from '../product.service';
 import { select, Store } from '@ngrx/store';
 import * as fromProduct from '../state/product.reducer';
 import * as productAction from '../state/product.actions';
+import { takeWhile } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 
 @Component({
@@ -16,11 +18,13 @@ import * as productAction from '../state/product.actions';
 })
 export class ProductListComponent implements OnInit, OnDestroy {
   pageTitle = 'Products';
-  errorMessage: string;
+  errorMessage$: Observable<string>;
 
   displayCode: boolean;
 
   products: Product[];
+
+  private componentActive = true;
 
   // Used to highlight the selected product in the list
   selectedProduct: Product | null;
@@ -33,10 +37,13 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.errorMessage$ = this.store.pipe(
+      select(fromProduct.getError)
+    );
+
     // this.sub = this.productService.selectedProductChanges$.subscribe(
     //   selectedProduct => this.selectedProduct = selectedProduct
     // );
-
     this.store
       .pipe(
         select(fromProduct.getCurrentProduct)
@@ -44,14 +51,28 @@ export class ProductListComponent implements OnInit, OnDestroy {
       selectedProduct => this.selectedProduct = selectedProduct
     );
 
-    this.productService.getProducts().subscribe({
-      next: (products: Product[]) => this.products = products,
-      error: (err: any) => this.errorMessage = err.error
-    });
+    // this.productService.getProducts().subscribe({
+    //   next: (products: Product[]) => this.products = products,
+    //   error: (err: any) => this.errorMessage = err.error
+    // });
+    // todo вот так делаем запрос на сервер
+    this.store.dispatch(new productAction.Load());
+    // todo теперь получаем продукты из стора (они там появятся как только будет получен ответ с сервера)
+    this.store
+      .pipe(
+        select(fromProduct.getProduct),
+        takeWhile(() => this.componentActive),
+      ).subscribe(
+      (res: Product[]) => {
+        this.products = res;
+      }
+    );
 
     /// получаем значение из селектора
     this.store.pipe(
       select((fromProduct.getShowProductCode)),
+      // todo вот так можно отписаться через takeWhile
+      takeWhile(() => this.componentActive),
     ).subscribe(
       products => {
         this.displayCode = products;
@@ -60,7 +81,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-
+    this.componentActive = false;
   }
 
   checkChanged(value: boolean): void {
