@@ -7,6 +7,9 @@ import { ProductShellComponent } from './product-shell/product-shell.component';
 import { ProductListComponent } from './product-list/product-list.component';
 import { ProductEditComponent } from './product-edit/product-edit.component';
 
+/* NgRx */
+import { StoreModule } from '@ngrx/store';
+
 const productRoutes: Routes = [
   { path: '', component: ProductShellComponent }
 ];
@@ -14,7 +17,13 @@ const productRoutes: Routes = [
 @NgModule({
   imports: [
     SharedModule,
-    RouterModule.forChild(productRoutes)
+    RouterModule.forChild(productRoutes),
+    /*
+    * todo подключаем дочерний модуль.
+    *  первый арг - имя фрагмента функции.
+    *  второй арг - редуктор или набор редукторов, которые создают состояния продуктов.
+    * */
+    StoreModule.forFeature('products', {}),
   ],
   declarations: [
     ProductShellComponent,
@@ -22,4 +31,5 @@ const productRoutes: Routes = [
     ProductEditComponent
   ]
 })
-export class ProductModule { }
+export class ProductModule {
+}
