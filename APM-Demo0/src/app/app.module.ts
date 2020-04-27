@@ -19,6 +19,8 @@ import { UserModule } from './user/user.module';
 
 /* NgRx */
 import { StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
 
 @NgModule({
   imports: [
@@ -29,6 +31,11 @@ import { StoreModule } from '@ngrx/store';
     AppRoutingModule,
     // TODO подключаем
     StoreModule.forRoot({}),
+    StoreDevtoolsModule.instrument({
+      name: 'MY NGRX DEMO',
+      maxAge: 25,
+      logOnly: environment.production,
+    }),
   ],
   declarations: [
     AppComponent,
