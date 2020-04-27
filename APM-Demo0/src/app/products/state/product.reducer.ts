@@ -1,11 +1,11 @@
 import { Product } from '../product';
-import * as fromRoot from '../../state/app.state';
+import { RootState } from '../../state/app.state';
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
 /*
 * todo вот теперь пойдет для ленивой загрузки
 * */
-export interface State extends fromRoot {
+export interface State extends RootState {
   product: ProductState;
 }
 
