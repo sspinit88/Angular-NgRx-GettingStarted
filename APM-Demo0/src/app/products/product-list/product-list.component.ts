@@ -4,7 +4,9 @@ import { Subscription } from 'rxjs';
 
 import { Product } from '../product';
 import { ProductService } from '../product.service';
-import { Store } from '@ngrx/store';
+/* NgRx */
+import { select, Store } from '@ngrx/store';
+import * as fromProduct from '../state/product.reducer';
 
 @Component({
   selector: 'pm-product-list',
@@ -24,7 +26,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
   sub: Subscription;
 
   constructor(
-    private store: Store<any>,
+    // todo вот теперь и с ленивой загрузкой все будет норм работать
+    private store: Store<fromProduct.State>,
     private productService: ProductService,
   ) {
   }
@@ -38,6 +41,15 @@ export class ProductListComponent implements OnInit, OnDestroy {
       next: (products: Product[]) => this.products = products,
       error: (err: any) => this.errorMessage = err.error
     });
+
+    /// получаем значение из селектора
+    this.store.pipe(
+      select((fromProduct.getShowProductCode)),
+    ).subscribe(
+      products => {
+        this.displayCode = products;
+      }
+    );
   }
 
   ngOnDestroy(): void {

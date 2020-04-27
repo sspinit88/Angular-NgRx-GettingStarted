@@ -32,7 +32,7 @@ import { environment } from '../environments/environment';
     // TODO подключаем
     StoreModule.forRoot({}),
     StoreDevtoolsModule.instrument({
-      name: 'MY NGRX DEMO',
+      name: 'MY NgRx DEMO',
       maxAge: 25,
       logOnly: environment.production,
     }),
