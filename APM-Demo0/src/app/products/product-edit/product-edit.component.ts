@@ -8,6 +8,11 @@ import { ProductService } from '../product.service';
 import { GenericValidator } from '../../shared/generic-validator';
 import { NumberValidators } from '../../shared/number.validator';
 
+import * as fromProduct from '../state/product.reducer';
+import { select, Store } from '@ngrx/store';
+import * as productAction from '../state/product.actions';
+
+
 @Component({
   selector: 'pm-product-edit',
   templateUrl: './product-edit.component.html',
@@ -26,8 +31,11 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   private validationMessages: { [key: string]: { [key: string]: string } };
   private genericValidator: GenericValidator;
 
-  constructor(private fb: FormBuilder,
-              private productService: ProductService) {
+  constructor(
+    private store: Store<fromProduct.State>,
+    private fb: FormBuilder,
+    private productService: ProductService,
+  ) {
 
     // Defines all of the validation messages for the form.
     // These could instead be retrieved from a file or database.
@@ -54,15 +62,17 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     // Define the form group
     this.productForm = this.fb.group({
       productName: ['', [Validators.required,
-                         Validators.minLength(3),
-                         Validators.maxLength(50)]],
+        Validators.minLength(3),
+        Validators.maxLength(50)]],
       productCode: ['', Validators.required],
       starRating: ['', NumberValidators.range(1, 5)],
       description: ''
     });
 
-    // Watch for changes to the currently selected product
-    this.sub = this.productService.selectedProductChanges$.subscribe(
+    // todo Watch for changes to the currently selected product
+    this.store.pipe(
+      select(fromProduct.getCurrentProduct)
+    ).subscribe(
       selectedProduct => this.displayProduct(selectedProduct)
     );
 
@@ -76,8 +86,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  // Also validate on blur
-  // Helpful if the user tabs through required fields
+// Also validate on blur
+// Helpful if the user tabs through required fields
   blur(): void {
     this.displayMessage = this.genericValidator.processMessages(this.productForm);
   }
@@ -86,7 +96,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     // Set the local product property
     this.product = product;
 
-    if (this.product) {
+    if (this.product
+    ) {
       // Reset the form back to pristine
       this.productForm.reset();
 
@@ -114,21 +125,24 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   }
 
   deleteProduct(): void {
-    if (this.product && this.product.id) {
+    if (this.product && this.product.id
+    ) {
       if (confirm(`Really delete the product: ${this.product.productName}?`)) {
         this.productService.deleteProduct(this.product.id).subscribe({
-          next: () => this.productService.changeSelectedProduct(null),
+          // todo а тут оповещаем
+          next: () => this.store.dispatch(new productAction.ClearCurrentProduct()),
           error: err => this.errorMessage = err.error
         });
       }
     } else {
-      // No need to delete, it was never saved
-      this.productService.changeSelectedProduct(null);
+      // todo No need to delete, it was never saved
+      this.store.dispatch(new productAction.ClearCurrentProduct());
     }
   }
 
   saveProduct(): void {
-    if (this.productForm.valid) {
+    if (this.productForm.valid
+    ) {
       if (this.productForm.dirty) {
         // Copy over all of the original product properties
         // Then copy over the values from the form
@@ -137,12 +151,14 @@ export class ProductEditComponent implements OnInit, OnDestroy {
 
         if (p.id === 0) {
           this.productService.createProduct(p).subscribe({
-            next: product => this.productService.changeSelectedProduct(product),
+            // todo применяем
+            next: product => this.store.dispatch(new productAction.SetCurrentProduct(product)),
             error: err => this.errorMessage = err.error
           });
         } else {
           this.productService.updateProduct(p).subscribe({
-            next: product => this.productService.changeSelectedProduct(product),
+            // todo применяем
+            next: product => this.store.dispatch(new productAction.SetCurrentProduct(product)),
             error: err => this.errorMessage = err.error
           });
         }

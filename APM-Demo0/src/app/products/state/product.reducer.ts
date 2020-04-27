@@ -1,6 +1,7 @@
-import { Product } from '../product';
 import { RootState } from '../../state/app.state';
 import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { ProductActions, ProductActionTypes } from './product.actions';
+import { Product } from '../product';
 
 /*
 * todo вот теперь пойдет для ленивой загрузки
@@ -50,13 +51,39 @@ export const getProduct = createSelector(
 * state - состояние из нашего хранилища;
 * action - действие подлежащее обработке;
 * */
-export function reducer(state: ProductState = initialState, action): ProductState {
+export function reducer(state = initialState, action: ProductActions): ProductState {
+
   switch (action.type) {
-    case 'TOGGLE_PRODUCT_CODE':
+    case ProductActionTypes.ToggleProductCode:
       return {
         ...state,
-        showProductCode: action.payload,
+        showProductCode: action.payload
       };
+
+    case ProductActionTypes.SetCurrentProduct:
+      return {
+        ...state,
+        currentProduct: { ...action.payload }
+      };
+
+    case ProductActionTypes.ClearCurrentProduct:
+      return {
+        ...state,
+        currentProduct: null
+      };
+
+    case ProductActionTypes.InitializeCurrentProduct:
+      return {
+        ...state,
+        currentProduct: {
+          id: 0,
+          productName: '',
+          productCode: 'New',
+          description: '',
+          starRating: 0
+        }
+      };
+
     default:
       return state;
   }

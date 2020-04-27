@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Subscription } from 'rxjs';
-
 import { Product } from '../product';
 import { ProductService } from '../product.service';
+
 /* NgRx */
 import { select, Store } from '@ngrx/store';
 import * as fromProduct from '../state/product.reducer';
+import * as productAction from '../state/product.actions';
+
 
 @Component({
   selector: 'pm-product-list',
@@ -23,7 +24,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   // Used to highlight the selected product in the list
   selectedProduct: Product | null;
-  sub: Subscription;
 
   constructor(
     // todo вот теперь и с ленивой загрузкой все будет норм работать
@@ -33,7 +33,14 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.sub = this.productService.selectedProductChanges$.subscribe(
+    // this.sub = this.productService.selectedProductChanges$.subscribe(
+    //   selectedProduct => this.selectedProduct = selectedProduct
+    // );
+
+    this.store
+      .pipe(
+        select(fromProduct.getCurrentProduct)
+      ).subscribe(
       selectedProduct => this.selectedProduct = selectedProduct
     );
 
@@ -53,23 +60,28 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.sub.unsubscribe();
+
   }
 
   checkChanged(value: boolean): void {
     // this.displayCode = value;
-    this.store.dispatch({
-      type: 'TOGGLE_PRODUCT_CODE',
-      payload: value,
-    });
+    this.store.dispatch(
+      new productAction.ToggleProductCode(value)
+    );
   }
 
   newProduct(): void {
-    this.productService.changeSelectedProduct(this.productService.newProduct());
+    // this.productService.changeSelectedProduct(this.productService.newProduct());
+    this.store.dispatch(
+      new productAction.InitializeCurrentProduct()
+    );
   }
 
   productSelected(product: Product): void {
-    this.productService.changeSelectedProduct(product);
+    // this.productService.changeSelectedProduct(product);
+    this.store.dispatch(
+      new productAction.SetCurrentProduct(product)
+    );
   }
 
 }
